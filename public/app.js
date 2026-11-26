@@ -10,6 +10,10 @@ const pdfStatus = document.querySelector("#pdf-status");
 const pdfList = document.querySelector("#pdf-list");
 const clearPdfsButton = document.querySelector("#clear-pdfs");
 const researchMode = document.querySelector("#research-mode");
+const csvInput = document.querySelector("#csv-input");
+const csvList = document.querySelector("#csv-list");
+let attachedDataset = null;
+let sentDataset = false;
 
 let conversation = [];
 let busy = false;
@@ -63,7 +67,55 @@ pdfInput.addEventListener("change", async () => {
 clearPdfsButton.addEventListener("click", () => {
   attachedDocuments = [];
   sentDocumentCount = 0;
+  attachedDataset = null;
+  sentDataset = false;
   renderPdfList();
+  renderCsvList();
+});
+
+
+function renderCsvList() {
+  csvList.replaceChildren();
+  if (!attachedDataset) return;
+  const chip = document.createElement("span");
+  chip.className = "pdf-chip";
+  chip.textContent = attachedDataset.filename + " · " + attachedDataset.rows + " rows · " + attachedDataset.columns + " columns";
+  csvList.append(chip);
+  const clear = document.createElement("button");
+  clear.type = "button";
+  clear.className = "clear-pdfs";
+  clear.textContent = "Remove dataset";
+  clear.addEventListener("click", () => {
+    attachedDataset = null;
+    sentDataset = false;
+    renderCsvList();
+  });
+  csvList.append(clear);
+}
+
+csvInput.addEventListener("change", async () => {
+  const file = csvInput.files?.[0];
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) {
+    csvList.textContent = "CSV must be 8 MB or smaller.";
+    csvInput.value = "";
+    return;
+  }
+  csvList.textContent = "Analyzing dataset…";
+  const payload = new FormData();
+  payload.append("file", file);
+  try {
+    const response = await fetch("/api/data/analyze", { method: "POST", body: payload });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "CSV analysis failed.");
+    attachedDataset = data.analysis;
+    sentDataset = false;
+    renderCsvList();
+  } catch (error) {
+    csvList.textContent = "Could not analyze CSV: " + error.message;
+  } finally {
+    csvInput.value = "";
+  }
 });
 
 function addMessage(role, content) {
@@ -110,7 +162,11 @@ async function sendMessage(rawMessage) {
       ).join("\n\n")
     : "";
   sentDocumentCount = attachedDocuments.length;
-  const requestContent = content + documentContext;
+  const datasetContext = attachedDataset && !sentDataset
+    ? "\\n\\nUSER-UPLOADED DATASET ANALYSIS (descriptive statistics, not causal inference):\\n" + JSON.stringify(attachedDataset)
+    : "";
+  sentDataset = Boolean(attachedDataset);
+  const requestContent = content + documentContext + datasetContext;
 
   welcome.hidden = true;
   addMessage("user", content);
@@ -225,6 +281,8 @@ newChatButton.addEventListener("click", () => {
   conversation = [];
   attachedDocuments = [];
   sentDocumentCount = 0;
+  attachedDataset = null;
+  sentDataset = false;
   messagesElement.replaceChildren();
   welcome.hidden = false;
   input.value = "";
@@ -245,4 +303,5 @@ async function checkHealth() {
 }
 
 renderPdfList();
+renderCsvList();
 checkHealth();
