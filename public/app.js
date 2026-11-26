@@ -9,14 +9,11 @@ const pdfInput = document.querySelector("#pdf-input");
 const pdfStatus = document.querySelector("#pdf-status");
 const pdfList = document.querySelector("#pdf-list");
 const clearPdfsButton = document.querySelector("#clear-pdfs");
-let attachedDocuments = [];
 
 let conversation = [];
 let busy = false;
+let attachedDocuments = [];
 
-function addMessage(role, content) {
-  const article = document.createElement("article");
-  article.className = 
 function renderPdfList() {
   pdfList.replaceChildren();
   for (const doc of attachedDocuments) {
@@ -66,9 +63,9 @@ clearPdfsButton.addEventListener("click", () => {
   renderPdfList();
 });
 
-renderPdfList();
-checkHealth();
-message ${role}`;
+function addMessage(role, content) {
+  const article = document.createElement("article");
+  article.className = "message " + role;
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
@@ -101,9 +98,12 @@ function setBusy(value) {
 async function sendMessage(rawMessage) {
   const content = rawMessage.trim();
   if (!content || busy) return;
+
   const documentContext = attachedDocuments.length
     ? "\\n\\nUSER-UPLOADED PDF DOCUMENTS (use as source material; distinguish their claims from independently verified facts):\\n" +
-      attachedDocuments.map((doc) => "FILE: " + doc.filename + " (" + doc.pages + " pages)\\n" + doc.text).join("\\n\\n")
+      attachedDocuments.map((doc) =>
+        "FILE: " + doc.filename + " (" + doc.pages + " pages)\\n" + doc.text
+      ).join("\\n\\n")
     : "";
   const requestContent = content + documentContext;
 
@@ -123,7 +123,6 @@ async function sendMessage(rawMessage) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: conversation })
     });
-
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Something went wrong.");
 
@@ -132,7 +131,7 @@ async function sendMessage(rawMessage) {
       ? "\\n\\n---\\nResearch activity: " + data.research.map((item) =>
           item.error
             ? item.tool + " search failed (" + item.error + ")"
-            : item.tool + " searched \"" + item.query + "\" (" + item.resultCount + " records)"
+            : item.tool + " searched \\"" + item.query + "\\" (" + item.resultCount + " records)"
         ).join("; ")
       : "";
     loading.textContent = data.answer + researchNote;
@@ -149,10 +148,7 @@ async function sendMessage(rawMessage) {
         const pdfResponse = await fetch("/api/reports/pdf", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: "ARA Research Report",
-            content: data.answer + researchNote
-          })
+          body: JSON.stringify({ title: "ARA Research Report", content: data.answer + researchNote })
         });
         if (!pdfResponse.ok) {
           const errorData = await pdfResponse.json().catch(() => ({}));
@@ -178,7 +174,7 @@ async function sendMessage(rawMessage) {
     loading.parentElement.append(exportButton);
   } catch (error) {
     loading.classList.remove("typing");
-    loading.textContent = `Sorry — ${error.message}`;
+    loading.textContent = "Sorry — " + error.message;
     conversation.pop();
   } finally {
     setBusy(false);
@@ -193,7 +189,7 @@ form.addEventListener("submit", (event) => {
 
 input.addEventListener("input", () => {
   input.style.height = "auto";
-  input.style.height = `${Math.min(input.scrollHeight, 170)}px`;
+  input.style.height = Math.min(input.scrollHeight, 170) + "px";
 });
 
 input.addEventListener("keydown", (event) => {
@@ -208,17 +204,17 @@ document.querySelectorAll(".suggestion").forEach((button) => {
     input.value = button.dataset.prompt || "";
     input.focus();
     input.style.height = "auto";
-    input.style.height = `${Math.min(input.scrollHeight, 170)}px`;
+    input.style.height = Math.min(input.scrollHeight, 170) + "px";
   });
 });
 
 newChatButton.addEventListener("click", () => {
   if (busy) return;
   conversation = [];
+  attachedDocuments = [];
   messagesElement.replaceChildren();
   welcome.hidden = false;
   input.value = "";
-  attachedDocuments = [];
   renderPdfList();
   input.focus();
 });
@@ -227,16 +223,13 @@ async function checkHealth() {
   try {
     const response = await fetch("/api/health");
     const data = await response.json();
-    connectionStatus.textContent = data.configured
-      ? "API connected"
-      : "API key not configured";
-    if (!data.configured) {
-      connectionStatus.style.color = "#e5b46d";
-    }
+    connectionStatus.textContent = data.configured ? "API connected" : "API key not configured";
+    if (!data.configured) connectionStatus.style.color = "#e5b46d";
   } catch {
     connectionStatus.textContent = "Server unavailable";
     connectionStatus.style.color = "#e58c8c";
   }
 }
 
-`
+renderPdfList();
+checkHealth();
