@@ -17,25 +17,129 @@ const imageList = document.querySelector("#image-list");
 let attachedImageFile = null;
 let attachedDataset = null;
 let sentDataset = false;
-const STORAGE_KEY = "ara.conversation.v1";
+const STORAGE_KEY = "ara.chats.v1";
+const LEGACY_STORAGE_KEY = "ara.conversation.v1";
+const historyElement = document.querySelector("#chat-history");
+let conversations = [];
+let activeConversationId = null;
+let conversation = [];
+let busy = false;
+
+function makeChat() {
+  return { id: (globalThis.crypto?.randomUUID?.() || String(Date.now()) + Math.random().toString(16).slice(2)), title: "New chat", updatedAt: Date.now(), messages: [] };
+}
 
 function saveConversation() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(conversation.slice(-30))); } catch {}
+  const active = conversations.find((chat) => chat.id === activeConversationId);
+  if (active) {
+    active.messages = conversation.slice(-60);
+    active.updatedAt = Date.now();
+    const firstUser = active.messages.find((item) => item.role === "user")?.content || "";
+    if (firstUser && active.title === "New chat") active.title = firstUser.replace(/\\s+/g, " ").slice(0, 42) + (firstUser.length > 42 ? "…" : "");
+  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ conversations, activeConversationId })); } catch {}
+  renderChatHistory();
+}
+
+function renderChatHistory() {
+  if (!historyElement) return;
+  historyElement.replaceChildren();
+  const sorted = [...conversations].sort((a, b) => b.updatedAt - a.updatedAt);
+  for (const chat of sorted) {
+    const item = document.createElement("div");
+    item.className = "history-item" + (chat.id === activeConversationId ? " active" : "");
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "history-open";
+    open.textContent = chat.title || "New chat";
+    open.title = chat.title || "New chat";
+    open.addEventListener("click", () => switchConversation(chat.id));
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "history-delete";
+    remove.textContent = "×";
+    remove.title = "Delete chat";
+    remove.setAttribute("aria-label", "Delete " + (chat.title || "chat"));
+    remove.addEventListener("click", (event) => {
+      event.stopPropagation();
+      conversations = conversations.filter((entry) => entry.id !== chat.id);
+      if (activeConversationId === chat.id) {
+        const next = [...conversations].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+        if (next) switchConversation(next.id);
+        else startNewConversation();
+      } else {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ conversations, activeConversationId })); } catch {}
+        renderChatHistory();
+      }
+    });
+    item.append(open, remove);
+    historyElement.append(item);
+  }
+  if (!sorted.length) {
+    const empty = document.createElement("p");
+    empty.className = "history-empty";
+    empty.textContent = "Your chats will appear here.";
+    historyElement.append(empty);
+  }
+}
+
+function switchConversation(id) {
+  const chat = conversations.find((entry) => entry.id === id);
+  if (!chat || busy) return;
+  activeConversationId = id;
+  conversation = Array.isArray(chat.messages) ? chat.messages.slice(-60) : [];
+  messagesElement.replaceChildren();
+  for (const item of conversation) addMessage(item.role, item.content);
+  welcome.hidden = conversation.length > 0;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ conversations, activeConversationId })); } catch {}
+  renderChatHistory();
+}
+
+function startNewConversation() {
+  if (busy) return;
+  const chat = makeChat();
+  conversations.push(chat);
+  activeConversationId = chat.id;
+  conversation = [];
+  messagesElement.replaceChildren();
+  welcome.hidden = false;
+  input.value = "";
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ conversations, activeConversationId })); } catch {}
+  renderChatHistory();
+  input.focus();
 }
 
 function restoreConversation() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    if (Array.isArray(saved)) {
-      conversation = saved.filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.content === "string").slice(-30);
-      for (const item of conversation) addMessage(item.role, item.content);
-      if (conversation.length) welcome.hidden = true;
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (saved && Array.isArray(saved.conversations)) {
+      conversations = saved.conversations.filter((chat) => chat && typeof chat.id === "string" && Array.isArray(chat.messages)).slice(-100);
+      activeConversationId = saved.activeConversationId;
+    } else {
+      const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "[]");
+      if (Array.isArray(legacy) && legacy.length) {
+        const migrated = makeChat();
+        migrated.messages = legacy.filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.content === "string").slice(-60);
+        const first = migrated.messages.find((item) => item.role === "user")?.content || "";
+        migrated.title = first.replace(/\\s+/g, " ").slice(0, 42) || "Imported chat";
+        conversations = [migrated];
+        activeConversationId = migrated.id;
+      }
     }
-  } catch { conversation = []; }
+  } catch { conversations = []; }
+  if (!conversations.length) {
+    const chat = makeChat();
+    conversations = [chat];
+    activeConversationId = chat.id;
+  }
+  const active = conversations.find((chat) => chat.id === activeConversationId) || conversations[0];
+  activeConversationId = active.id;
+  conversation = active.messages.slice(-60);
+  for (const item of conversation) addMessage(item.role, item.content);
+  welcome.hidden = conversation.length > 0;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ conversations, activeConversationId })); } catch {}
+  renderChatHistory();
 }
-
-let conversation = [];
-let busy = false;
 let attachedDocuments = [];
 let sentDocumentCount = 0;
 
@@ -380,20 +484,15 @@ document.querySelectorAll(".suggestion").forEach((button) => {
 
 newChatButton.addEventListener("click", () => {
   if (busy) return;
-  conversation = [];
-  try { localStorage.removeItem(STORAGE_KEY); } catch {}
   attachedDocuments = [];
   sentDocumentCount = 0;
   attachedDataset = null;
   sentDataset = false;
   attachedImageFile = null;
-  messagesElement.replaceChildren();
-  welcome.hidden = false;
-  input.value = "";
   renderPdfList();
   renderCsvList();
   renderImageList();
-  input.focus();
+  startNewConversation();
 });
 
 async function checkHealth() {
