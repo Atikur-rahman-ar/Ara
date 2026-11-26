@@ -64,6 +64,8 @@
         <div class="upload-row">
           <label class="upload-button" for="pdf-input">＋ Attach PDFs</label>
           <label class="upload-button" for="csv-input">＋ Analyze CSV</label>
+          <label class="upload-button" for="image-input">＋ Analyze image</label>
+          <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
           <input id="csv-input" type="file" accept=".csv,text/csv" hidden />
           <input id="pdf-input" type="file" accept="application/pdf,.pdf" multiple hidden />
           <span id="pdf-status" class="pdf-status">Up to 3 PDFs · 8 MB each · 40 pages each</span>
@@ -71,6 +73,7 @@
         </div>
         <div id="pdf-list" class="pdf-list" aria-live="polite"></div>
         <div id="csv-list" class="pdf-list" aria-live="polite"></div>
+        <div id="image-list" class="pdf-list" aria-live="polite"></div>
         <form class="composer" id="chat-form">
           <textarea id="message-input" rows="1" placeholder="Ask a research question…" aria-label="Your research question" required></textarea>
           <div class="composer-footer">
