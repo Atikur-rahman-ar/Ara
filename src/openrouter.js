@@ -17,7 +17,7 @@ export async function askResearchModel(messages) {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": process.env.APP_URL || "http://localhost:3000",
-        "X-Title": "ARA — Autonomous Research Assistant"
+        "X-Title": "ARA - Autonomous Research Assistant"
       },
       body: JSON.stringify({
         model,
