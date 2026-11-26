@@ -74,27 +74,7 @@ app.post("/api/reports/:format", async (req, res) => {
   }
 });
 
-app.post("/api/reports/pdf", (req, res) => {
-  try {
-    const report = validatePdfRequest(req.body);
-    const filename = report.title
-      .normalize("NFKD")
-      .replace(/[^a-zA-Z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 70) || "ara-research-report";
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}.pdf"`);
-    res.setHeader("Cache-Control", "no-store");
-    createResearchPdf(report).pipe(res);
-  } catch (error) {
-    if (!res.headersSent) {
-      res.status(error.status || 500).json({ error: error.message || "Could not create the PDF." });
-    } else {
-      res.end();
-    }
-  }
-});
 
 app.post("/api/chat", async (req, res) => {
   const { messages } = req.body ?? {};
