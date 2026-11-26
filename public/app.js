@@ -5,13 +5,70 @@ const messagesElement = document.querySelector("#messages");
 const welcome = document.querySelector("#welcome");
 const connectionStatus = document.querySelector("#connection-status");
 const newChatButton = document.querySelector("#new-chat");
+const pdfInput = document.querySelector("#pdf-input");
+const pdfStatus = document.querySelector("#pdf-status");
+const pdfList = document.querySelector("#pdf-list");
+const clearPdfsButton = document.querySelector("#clear-pdfs");
+let attachedDocuments = [];
 
 let conversation = [];
 let busy = false;
 
 function addMessage(role, content) {
   const article = document.createElement("article");
-  article.className = `message ${role}`;
+  article.className = 
+function renderPdfList() {
+  pdfList.replaceChildren();
+  for (const doc of attachedDocuments) {
+    const item = document.createElement("span");
+    item.className = "pdf-chip";
+    item.textContent = doc.filename + " · " + doc.pages + " pages";
+    pdfList.append(item);
+  }
+  clearPdfsButton.hidden = attachedDocuments.length === 0;
+  pdfStatus.textContent = attachedDocuments.length
+    ? attachedDocuments.length + " PDF(s) ready — ask ARA to summarize, critique, compare, or extract references"
+    : "Up to 3 PDFs · 8 MB each · 40 pages each";
+}
+
+pdfInput.addEventListener("change", async () => {
+  const files = Array.from(pdfInput.files || []);
+  if (!files.length) return;
+  if (files.length + attachedDocuments.length > 3) {
+    pdfStatus.textContent = "Maximum 3 PDFs. Clear existing files first.";
+    pdfInput.value = "";
+    return;
+  }
+  if (files.some((file) => file.size > 8 * 1024 * 1024)) {
+    pdfStatus.textContent = "Each PDF must be 8 MB or smaller.";
+    pdfInput.value = "";
+    return;
+  }
+
+  pdfStatus.textContent = "Extracting PDF text…";
+  const payload = new FormData();
+  files.forEach((file) => payload.append("files", file));
+  try {
+    const response = await fetch("/api/documents/extract", { method: "POST", body: payload });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "PDF extraction failed.");
+    attachedDocuments.push(...data.documents);
+    renderPdfList();
+  } catch (error) {
+    pdfStatus.textContent = "Could not read PDF: " + error.message;
+  } finally {
+    pdfInput.value = "";
+  }
+});
+
+clearPdfsButton.addEventListener("click", () => {
+  attachedDocuments = [];
+  renderPdfList();
+});
+
+renderPdfList();
+checkHealth();
+message ${role}`;
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
@@ -44,10 +101,15 @@ function setBusy(value) {
 async function sendMessage(rawMessage) {
   const content = rawMessage.trim();
   if (!content || busy) return;
+  const documentContext = attachedDocuments.length
+    ? "\\n\\nUSER-UPLOADED PDF DOCUMENTS (use as source material; distinguish their claims from independently verified facts):\\n" +
+      attachedDocuments.map((doc) => "FILE: " + doc.filename + " (" + doc.pages + " pages)\\n" + doc.text).join("\\n\\n")
+    : "";
+  const requestContent = content + documentContext;
 
   welcome.hidden = true;
   addMessage("user", content);
-  conversation.push({ role: "user", content });
+  conversation.push({ role: "user", content: requestContent });
   input.value = "";
   input.style.height = "auto";
   setBusy(true);
@@ -156,6 +218,8 @@ newChatButton.addEventListener("click", () => {
   messagesElement.replaceChildren();
   welcome.hidden = false;
   input.value = "";
+  attachedDocuments = [];
+  renderPdfList();
   input.focus();
 });
 
@@ -175,4 +239,4 @@ async function checkHealth() {
   }
 }
 
-checkHealth();
+`
