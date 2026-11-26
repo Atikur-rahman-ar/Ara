@@ -66,8 +66,15 @@ async function sendMessage(rawMessage) {
     if (!response.ok) throw new Error(data.error || "Something went wrong.");
 
     loading.classList.remove("typing");
-    loading.textContent = data.answer;
-    conversation.push({ role: "assistant", content: data.answer });
+    const researchNote = Array.isArray(data.research) && data.research.length
+      ? "\\n\\n---\\nResearch activity: " + data.research.map((item) =>
+          item.error
+            ? item.tool + " search failed (" + item.error + ")"
+            : item.tool + " searched \"" + item.query + "\" (" + item.resultCount + " records)"
+        ).join("; ")
+      : "";
+    loading.textContent = data.answer + researchNote;
+    conversation.push({ role: "assistant", content: data.answer + researchNote });
   } catch (error) {
     loading.classList.remove("typing");
     loading.textContent = `Sorry — ${error.message}`;
