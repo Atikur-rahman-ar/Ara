@@ -91,3 +91,8 @@ textarea::placeholder { color: #788294; }
   .composer-wrap { width: calc(100% - 28px); padding-bottom: 12px; }
   .composer-hint { max-width: 190px; line-height: 1.4; }
 }
+
+
+.export-pdf { margin-top: 13px; border: 1px solid #494363; border-radius: 8px; padding: 7px 11px; background: #211f32; color: #c9c3ff; font-size: 10px; font-weight: 600; cursor: pointer; }
+.export-pdf:hover { border-color: #8e84dc; background: #292540; }
+.export-pdf:disabled { opacity: .65; cursor: wait; }
