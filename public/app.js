@@ -103,10 +103,10 @@ async function sendMessage(rawMessage) {
 
   const newDocuments = attachedDocuments.slice(sentDocumentCount);
   const documentContext = newDocuments.length
-    ? "\\n\\nUSER-UPLOADED PDF DOCUMENTS (use as source material; distinguish their claims from independently verified facts):\\n" +
+    ? "\n\nUSER-UPLOADED PDF DOCUMENTS (use as source material; distinguish their claims from independently verified facts):\n" +
       newDocuments.map((doc) =>
-        "FILE: " + doc.filename + " (" + doc.pages + " pages)\\n" + doc.text
-      ).join("\\n\\n")
+        "FILE: " + doc.filename + " (" + doc.pages + " pages)\n" + doc.text
+      ).join("\n\n")
     : "";
   sentDocumentCount = attachedDocuments.length;
   const requestContent = content + documentContext;
@@ -132,7 +132,7 @@ async function sendMessage(rawMessage) {
 
     loading.classList.remove("typing");
     const researchNote = Array.isArray(data.research) && data.research.length
-      ? "\\n\\n---\\nResearch activity: " + data.research.map((item) =>
+      ? "\n\n---\nResearch activity: " + data.research.map((item) =>
           item.error
             ? item.tool + " search failed (" + item.error + ")"
             : item.tool + " searched \\"" + item.query + "\\" (" + item.resultCount + " records)"
