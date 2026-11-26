@@ -83,10 +83,7 @@ pdfInput.addEventListener("change", async () => {
 clearPdfsButton.addEventListener("click", () => {
   attachedDocuments = [];
   sentDocumentCount = 0;
-  attachedDataset = null;
-  sentDataset = false;
   renderPdfList();
-  renderCsvList();
 });
 
 
@@ -179,7 +176,7 @@ async function sendMessage(rawMessage) {
     : "";
   sentDocumentCount = attachedDocuments.length;
   const datasetContext = attachedDataset && !sentDataset
-    ? "\\n\\nUSER-UPLOADED DATASET ANALYSIS (descriptive statistics, not causal inference):\\n" + JSON.stringify(attachedDataset)
+    ? "\n\nUSER-UPLOADED DATASET ANALYSIS (descriptive statistics, not causal inference):\n" + JSON.stringify(attachedDataset)
     : "";
   sentDataset = Boolean(attachedDataset);
   const requestContent = content + documentContext + datasetContext;
@@ -307,6 +304,7 @@ newChatButton.addEventListener("click", () => {
   welcome.hidden = false;
   input.value = "";
   renderPdfList();
+  renderCsvList();
   input.focus();
 });
 
