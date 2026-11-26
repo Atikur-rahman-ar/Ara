@@ -84,6 +84,7 @@ The endpoint accepts recent user/assistant messages and returns:
 - [ ] Streaming responses
 - [ ] Model selector and provider error handling
 - [x] Scholarly metadata search through OpenAlex and Crossref
+- [x] CSV descriptive statistics, missing-value counts, categorical frequencies, and Pearson correlations
 - [x] Specialist review workflow (logic/methodology and evidence/citation review)
 - [x] Upload PDFs and extract selectable text for analysis (up to 3 files, 8 MB and 40 pages each)
 - [x] Ask questions about uploaded PDFs and compare their contents
@@ -92,6 +93,7 @@ The endpoint accepts recent user/assistant messages and returns:
 - [x] Bounded agent tool-calling loop
 - [ ] Citation/source verification workflow
 - [x] Export assistant responses as PDF, Word (DOCX), Excel (XLSX), and PowerPoint (PPTX)
+- [x] Quick, Research, and Deep Research modes
 
 ## Important limitation
 
