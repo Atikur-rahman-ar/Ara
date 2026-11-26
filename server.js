@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import multer from "multer";
+import { createOfficeExport } from "./src/office-exports.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runResearchAgent } from "./src/agent.js";
@@ -25,7 +26,7 @@ app.get("/api/health", (_req, res) => {
     status: "ok",
     name: "ARA",
     configured: Boolean(process.env.OPENROUTER_API_KEY),
-    capabilities: ["agent-loop", "openalex-literature-search", "pdf-report-export", "pdf-text-extraction"]
+    capabilities: ["agent-loop", "openalex-literature-search", "crossref-search", "specialist-review", "pdf-report-export", "pdf-text-extraction", "docx-export", "xlsx-export", "pptx-export"]
   });
 });
 
@@ -49,6 +50,28 @@ app.post("/api/documents/extract", (req, res, next) => {
       return res.status(400).json({ error: error.message || "Could not read the PDF." });
     }
   });
+});
+
+app.post("/api/reports/:format", async (req, res) => {
+  try {
+    const format = String(req.params.format || "").toLowerCase();
+    const report = validatePdfRequest(req.body);
+    if (format === "pdf") {
+      const filename = report.title.normalize("NFKD").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70) || "ara-research-report";
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}.pdf"`);
+      res.setHeader("Cache-Control", "no-store");
+      return createResearchPdf(report).pipe(res);
+    }
+    const file = await createOfficeExport(format, report);
+    const filename = report.title.normalize("NFKD").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70) || "ara-research-report";
+    res.setHeader("Content-Type", file.contentType);
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}.${file.extension}"`);
+    res.setHeader("Cache-Control", "no-store");
+    return res.send(file.buffer);
+  } catch (error) {
+    return res.status(error.status || 400).json({ error: error.message || "Could not export the report." });
+  }
 });
 
 app.post("/api/reports/pdf", (req, res) => {
@@ -90,7 +113,8 @@ app.post("/api/chat", async (req, res) => {
   }
 
   try {
-    const result = await runResearchAgent(normalizedMessages);
+    const mode = ["quick", "research", "deep"].includes(req.body?.mode) ? req.body.mode : "research";
+    const result = await runResearchAgent(normalizedMessages, mode);
     return res.json({ answer: result.answer, research: result.trace });
   } catch (error) {
     console.error("ARA request failed:", error.message);
