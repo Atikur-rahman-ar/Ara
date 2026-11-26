@@ -157,6 +157,52 @@ function addMessage(role, content) {
   return text;
 }
 
+
+function renderSources(parent, research) {
+  const records = (Array.isArray(research) ? research : [])
+    .flatMap((item) => Array.isArray(item.records) ? item.records : []);
+  const unique = [];
+  const seen = new Set();
+  for (const record of records) {
+    const key = record.doi || record.title;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(record);
+  }
+  if (!unique.length) return;
+
+  const section = document.createElement("section");
+  section.className = "source-list";
+  const heading = document.createElement("strong");
+  heading.textContent = "Retrieved scholarly records";
+  section.append(heading);
+
+  for (const record of unique.slice(0, 12)) {
+    const item = document.createElement("div");
+    item.className = "source-item";
+    const title = document.createElement("a");
+    title.textContent = record.title || "Untitled record";
+    title.href = record.url || (record.doi ? "https://doi.org/" + record.doi : "#");
+    try {
+      const parsed = new URL(title.href);
+      if (!["https:", "http:"].includes(parsed.protocol)) throw new Error("Unsafe link");
+    } catch {
+      title.removeAttribute("href");
+    }
+    title.target = "_blank";
+    title.rel = "noopener noreferrer";
+    item.append(title);
+
+    const meta = document.createElement("span");
+    const authors = Array.isArray(record.authors) ? record.authors.join(", ") : "";
+    meta.textContent = [authors, record.year, record.journal, record.doi ? "DOI: " + record.doi : "", record.source]
+      .filter(Boolean).join(" · ");
+    item.append(meta);
+    section.append(item);
+  }
+  parent.append(section);
+}
+
 function setBusy(value) {
   busy = value;
   sendButton.disabled = value;
@@ -255,6 +301,7 @@ async function sendMessage(rawMessage) {
       exportGroup.append(exportButton);
     }
     loading.parentElement.append(exportGroup);
+    renderSources(loading.parentElement, data.research);
   } catch (error) {
     loading.classList.remove("typing");
     loading.textContent = "Sorry — " + error.message;
