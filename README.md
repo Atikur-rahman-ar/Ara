@@ -89,7 +89,7 @@ The endpoint accepts recent user/assistant messages and returns:
 - [x] Upload PDFs and extract selectable text for analysis (up to 3 files, 8 MB and 40 pages each)
 - [x] Ask questions about uploaded PDFs and compare their contents
 - [ ] OCR for scanned/image-only PDFs
-- [ ] Persistent conversation and research memory
+- [x] Local browser conversation autosave (not cloud memory or cross-device sync)
 - [x] Bounded agent tool-calling loop
 - [ ] Citation/source verification workflow
 - [x] Export assistant responses as PDF, Word (DOCX), Excel (XLSX), and PowerPoint (PPTX)
