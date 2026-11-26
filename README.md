@@ -1,0 +1,95 @@
+# ARA — Autonomous Research Assistant
+
+ARA is a web-based research assistant built with JavaScript, Node.js, Express, and OpenRouter.
+
+## Current version
+
+**v0.1.0 — Foundation**
+
+- Responsive research chat interface
+- Node.js / Express backend
+- OpenRouter chat-completions integration
+- API key kept on the server in an environment file
+- Research-focused system instructions
+- Basic health/configuration endpoint
+- In-session conversation context in the browser
+
+## Requirements
+
+- Node.js 20 or newer
+- An OpenRouter API key: https://openrouter.ai/keys
+
+## Setup
+
+1. Clone the repository.
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Create a local environment file:
+
+   - Windows PowerShell: `Copy-Item .env.example .env`
+   - macOS / Linux: `cp .env.example .env`
+
+4. Open `.env` and set `OPENROUTER_API_KEY`.
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+6. Open http://localhost:3000.
+
+For production, use `npm start`.
+
+## Configuration
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `OPENROUTER_API_KEY` | Secret API key | Required |
+| `OPENROUTER_MODEL` | OpenRouter model/router slug | `openrouter/free` |
+| `PORT` | Local server port | `3000` |
+| `APP_URL` | Optional OpenRouter referrer header | `http://localhost:3000` |
+
+Never put the OpenRouter API key in frontend JavaScript or commit your real `.env` file.
+
+## API
+
+### `GET /api/health`
+
+Returns the server status and whether an OpenRouter key is configured.
+
+### `POST /api/chat`
+
+Request body:
+
+```json
+{
+  "messages": [
+    { "role": "user", "content": "Explain causal finitism." }
+  ]
+}
+```
+
+The endpoint accepts recent user/assistant messages and returns:
+
+```json
+{ "answer": "..." }
+```
+
+## Roadmap
+
+- [ ] Streaming responses
+- [ ] Model selector and provider error handling
+- [ ] Web search tool with source citations
+- [ ] PDF upload and document analysis
+- [ ] Persistent conversation and research memory
+- [ ] Agent tool-calling loop
+- [ ] Citation/source verification workflow
+- [ ] Exportable research reports
+
+## Important limitation
+
+This foundation does not yet perform live web searches, read PDFs, or verify citations automatically. It must not be treated as a source-verification system until those capabilities are implemented and tested.
