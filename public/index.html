@@ -61,6 +61,13 @@
       </section>
 
       <section class="composer-wrap">
+        <div class="upload-row">
+          <label class="upload-button" for="pdf-input">＋ Attach PDFs</label>
+          <input id="pdf-input" type="file" accept="application/pdf,.pdf" multiple hidden />
+          <span id="pdf-status" class="pdf-status">Up to 3 PDFs · 8 MB each · 40 pages each</span>
+          <button id="clear-pdfs" class="clear-pdfs" type="button" hidden>Clear files</button>
+        </div>
+        <div id="pdf-list" class="pdf-list" aria-live="polite"></div>
         <form class="composer" id="chat-form">
           <textarea id="message-input" rows="1" placeholder="Ask a research question…" aria-label="Your research question" required></textarea>
           <div class="composer-footer">
