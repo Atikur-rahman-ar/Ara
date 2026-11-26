@@ -180,7 +180,7 @@ function addMessage(role, content) {
   body.append(label, text);
   article.append(avatar, body);
   messagesElement.append(article);
-  article.scrollIntoView({ behavior: "smooth", block: "end" });
+  messagesElement.scrollTo({ top: messagesElement.scrollHeight, behavior: "smooth" });
   return text;
 }
 
