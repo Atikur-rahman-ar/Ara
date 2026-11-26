@@ -343,6 +343,8 @@ async function sendMessage(rawMessage) {
     loading.classList.remove("typing");
     loading.textContent = "Sorry — " + error.message;
     conversation.pop();
+    sentDocumentCount = Math.max(0, sentDocumentCount - newDocuments.length);
+    if (datasetContext) sentDataset = false;
     saveConversation();
   } finally {
     setBusy(false);
