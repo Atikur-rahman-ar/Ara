@@ -34,6 +34,7 @@ export async function extractPdfDocument(file) {
       truncated: text.length >= MAX_TEXT_CHARS
     };
   } finally {
-    await pdf.destroy();
+    // unpdf's document proxy may not expose destroy() in every runtime/version.
+    if (typeof pdf.destroy === "function") await pdf.destroy();
   }
 }
