@@ -80,7 +80,11 @@ export function analyzeCsv(buffer, filename = "dataset.csv") {
   const correlations = [];
   for (let i = 0; i < numericColumns.length; i += 1) {
     for (let j = i + 1; j < numericColumns.length; j += 1) {
-      const pairs = rows.map((row) => [Number(row[numericColumns[i].name]), Number(row[numericColumns[j].name])]);
+      const pairs = rows.map((row) => {
+        const left = String(row[numericColumns[i].name] ?? "").trim();
+        const right = String(row[numericColumns[j].name] ?? "").trim();
+        return [left === "" ? NaN : Number(left), right === "" ? NaN : Number(right)];
+      });
       const value = pearson(pairs);
       if (value !== null) correlations.push({ x: numericColumns[i].name, y: numericColumns[j].name, pearson: value });
     }
