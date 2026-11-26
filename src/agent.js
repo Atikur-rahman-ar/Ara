@@ -99,6 +99,7 @@ export async function runResearchAgent(conversation, mode = "research") {
   const trace = [];
   const evidence = [];
   let searches = 0;
+  const searchLimit = mode === "deep" ? 4 : 2;
   let draft = "";
 
   if (mode !== "quick") {
@@ -108,7 +109,7 @@ export async function runResearchAgent(conversation, mode = "research") {
       if (!action || typeof action !== "object") { draft = raw; break; }
       if (action.action === "final" && typeof action.answer === "string") { draft = action.answer; break; }
 
-      if ((action.action === "search_literature" || action.action === "search_crossref") && searches < 4) {
+      if ((action.action === "search_literature" || action.action === "search_crossref") && searches < searchLimit) {
         searches += 1;
         const query = String(action.query || "").trim().slice(0, 300);
         const tool = action.action === "search_literature" ? "OpenAlex" : "Crossref";
