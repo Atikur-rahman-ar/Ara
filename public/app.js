@@ -32,7 +32,7 @@ function makeChat() {
 function saveConversation() {
   const active = conversations.find((chat) => chat.id === activeConversationId);
   if (active) {
-    active.messages = conversation.slice(-60);
+    active.messages = conversation.slice(-30);
     active.updatedAt = Date.now();
     const firstUser = active.messages.find((item) => item.role === "user")?.content || "";
     if (firstUser && active.title === "New chat") active.title = firstUser.replace(/\\s+/g, " ").slice(0, 42) + (firstUser.length > 42 ? "…" : "");
@@ -134,7 +134,7 @@ function restoreConversation() {
   }
   const active = conversations.find((chat) => chat.id === activeConversationId) || conversations[0];
   activeConversationId = active.id;
-  conversation = active.messages.slice(-60);
+  conversation = active.messages.slice(-30);
   for (const item of conversation) addMessage(item.role, item.content);
   welcome.hidden = conversation.length > 0;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ conversations, activeConversationId })); } catch {}
@@ -361,7 +361,7 @@ async function sendMessage(rawMessage) {
 
   welcome.hidden = true;
   addMessage("user", content);
-  conversation.push({ role: "user", content: requestContent });
+  conversation.push({ role: "user", content });
   saveConversation();
   input.value = "";
   input.style.height = "auto";
@@ -381,7 +381,12 @@ async function sendMessage(rawMessage) {
       response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: conversation, mode: researchMode.value })
+        body: JSON.stringify({
+          messages: conversation.map((item, index) =>
+            index === conversation.length - 1 ? { ...item, content: requestContent } : item
+          ),
+          mode: researchMode.value
+        })
       });
     }
     const data = await response.json();
