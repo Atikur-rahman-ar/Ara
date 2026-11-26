@@ -1,7 +1,7 @@
 import { extractText, getDocumentProxy } from "unpdf";
 
 const MAX_PAGES = 40;
-const MAX_TEXT_CHARS = 24000;
+const MAX_TEXT_CHARS = 12000;
 
 export async function extractPdfDocument(file) {
   if (!file || !Buffer.isBuffer(file.buffer)) {
@@ -29,7 +29,7 @@ export async function extractPdfDocument(file) {
 
     return {
       filename: String(file.originalname || "document.pdf").slice(0, 180),
-      pages: pdf.numPages,
+      pages: extracted.totalPages,
       text,
       truncated: text.length >= MAX_TEXT_CHARS
     };
