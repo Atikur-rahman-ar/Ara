@@ -88,8 +88,9 @@ The endpoint accepts recent user/assistant messages and returns:
 - [ ] Persistent conversation and research memory
 - [ ] Agent tool-calling loop
 - [ ] Citation/source verification workflow
-- [ ] Exportable research reports
+- [x] Export assistant responses as formatted PDF reports
+- [ ] PDF upload and document analysis
 
 ## Important limitation
 
-This foundation does not yet perform live web searches, read PDFs, or verify citations automatically. It must not be treated as a source-verification system until those capabilities are implemented and tested.
+ARA can export an assistant response as a formatted A4 PDF. On Windows, it attempts to use the installed Nirmala UI font for Bengali text. PDF upload/reading and automatic citation verification are not implemented yet. Scholarly search currently retrieves OpenAlex metadata only; it does not fetch or inspect full-text papers.
