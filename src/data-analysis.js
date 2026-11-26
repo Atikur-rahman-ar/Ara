@@ -14,11 +14,12 @@ function median(values) {
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
-function pearson(a, b) {
-  const n = Math.min(a.length, b.length);
+function pearson(pairs) {
+  const valid = pairs.filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+  const n = valid.length;
   if (n < 3) return null;
-  const x = a.slice(0, n);
-  const y = b.slice(0, n);
+  const x = valid.map((pair) => pair[0]);
+  const y = valid.map((pair) => pair[1]);
   const mx = x.reduce((s, v) => s + v, 0) / n;
   const my = y.reduce((s, v) => s + v, 0) / n;
   const numerator = x.reduce((s, v, i) => s + (v - mx) * (y[i] - my), 0);
@@ -79,9 +80,8 @@ export function analyzeCsv(buffer, filename = "dataset.csv") {
   const correlations = [];
   for (let i = 0; i < numericColumns.length; i += 1) {
     for (let j = i + 1; j < numericColumns.length; j += 1) {
-      const a = rows.map((row) => Number(row[numericColumns[i].name])).filter(Number.isFinite);
-      const b = rows.map((row) => Number(row[numericColumns[j].name])).filter(Number.isFinite);
-      const value = pearson(a, b);
+      const pairs = rows.map((row) => [Number(row[numericColumns[i].name]), Number(row[numericColumns[j].name])]);
+      const value = pearson(pairs);
       if (value !== null) correlations.push({ x: numericColumns[i].name, y: numericColumns[j].name, pearson: value });
     }
   }
