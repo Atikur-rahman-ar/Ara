@@ -4,7 +4,7 @@ ARA is a web-based research assistant built with JavaScript, Node.js, Express, a
 
 ## Current version
 
-**v0.1.0 — Foundation**
+**v0.2.0 — Research workspace upgrade**
 
 - Responsive research chat interface
 - Node.js / Express backend
@@ -83,15 +83,16 @@ The endpoint accepts recent user/assistant messages and returns:
 
 - [ ] Streaming responses
 - [ ] Model selector and provider error handling
-- [ ] Web search tool with source citations
+- [x] Scholarly metadata search through OpenAlex and Crossref
+- [x] Specialist review workflow (logic/methodology and evidence/citation review)
 - [x] Upload PDFs and extract selectable text for analysis (up to 3 files, 8 MB and 40 pages each)
 - [x] Ask questions about uploaded PDFs and compare their contents
 - [ ] OCR for scanned/image-only PDFs
 - [ ] Persistent conversation and research memory
-- [ ] Agent tool-calling loop
+- [x] Bounded agent tool-calling loop
 - [ ] Citation/source verification workflow
-- [x] Export assistant responses as formatted PDF reports
+- [x] Export assistant responses as PDF, Word (DOCX), Excel (XLSX), and PowerPoint (PPTX)
 
 ## Important limitation
 
-ARA can export an assistant response as a formatted A4 PDF and extract selectable text from uploaded PDFs. Users can attach up to 3 PDFs (8 MB and 40 pages each) and ask for summaries, critical analysis, comparisons, and reference extraction. On Windows, PDF export attempts to use the installed Nirmala UI font for Bengali text. Scanned/image-only PDFs are not OCR-processed yet, and citation verification is not automatic. Scholarly search currently retrieves OpenAlex metadata only; it does not independently fetch or inspect full-text papers. Text extracted from uploaded PDFs is supplied to the model as user-provided source material, not independently verified evidence.
+ARA can export responses as PDF, DOCX, XLSX, and PPTX, extract selectable text from uploaded PDFs, search OpenAlex and Crossref metadata, and run a specialist review workflow. Quick, Research, and Deep Research modes control search and review effort. Users can attach up to 3 PDFs (8 MB and 40 pages each) and ask for summaries, critical analysis, comparisons, and reference extraction. On Windows, PDF export attempts to use the installed Nirmala UI font for Bengali text. Scanned/image-only PDFs are not OCR-processed yet, and citation verification is not automatic. Scholarly search currently retrieves OpenAlex metadata only; it does not independently fetch or inspect full-text papers. Text extracted from uploaded PDFs is supplied to the model as user-provided source material, not independently verified evidence.
