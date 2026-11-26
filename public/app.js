@@ -288,7 +288,7 @@ async function sendMessage(rawMessage) {
       ? "\n\n---\nResearch activity: " + data.research.map((item) =>
           item.error
             ? item.tool + " search failed (" + item.error + ")"
-            : item.tool + " searched \\"" + item.query + "\\" (" + item.resultCount + " records)"
+            : item.tool + ' searched "' + item.query + '" (' + item.resultCount + ' records)'
         ).join("; ")
       : "";
     loading.textContent = data.answer + researchNote;
