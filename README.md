@@ -12,7 +12,11 @@ ARA is a web-based research assistant built with JavaScript, Node.js, Express, a
 - API key kept on the server in an environment file
 - Research-focused system instructions
 - Basic health/configuration endpoint
-- In-session conversation context in the browser
+- Local browser autosave for recent conversation context
+- Quick, Research, and Deep Research modes
+- Vision-based image analysis when the selected model supports images
+- CSV descriptive analysis and correlation summaries
+- PDF reading and PDF/DOCX/XLSX/PPTX report export
 
 ## Requirements
 
