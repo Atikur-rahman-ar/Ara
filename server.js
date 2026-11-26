@@ -2,8 +2,7 @@ import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { askResearchModel } from "./src/openrouter.js";
-import { SYSTEM_PROMPT } from "./src/prompts.js";
+import { runResearchAgent } from "./src/agent.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
