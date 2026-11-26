@@ -6,6 +6,7 @@ import { analyzeCsv } from "./src/data-analysis.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runResearchAgent } from "./src/agent.js";
+import { askResearchModel } from "./src/openrouter.js";
 import { createResearchPdf, validatePdfRequest } from "./src/pdf.js";
 import { extractPdfDocument } from "./src/pdf-reader.js";
 
@@ -13,6 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 4 * 1024 * 1024, files: 1 } });
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024, files: 3 }
@@ -27,7 +29,31 @@ app.get("/api/health", (_req, res) => {
     status: "ok",
     name: "ARA",
     configured: Boolean(process.env.OPENROUTER_API_KEY),
-    capabilities: ["agent-loop", "openalex-literature-search", "crossref-search", "specialist-review", "pdf-report-export", "pdf-text-extraction", "docx-export", "xlsx-export", "pptx-export", "csv-statistical-analysis"]
+    capabilities: ["agent-loop", "openalex-literature-search", "crossref-search", "specialist-review", "pdf-report-export", "pdf-text-extraction", "docx-export", "xlsx-export", "pptx-export", "csv-statistical-analysis", "image-understanding"]
+  });
+});
+
+app.post("/api/vision/analyze", (req, res) => {
+  imageUpload.single("image")(req, res, async (uploadError) => {
+    if (uploadError) return res.status(400).json({ error: uploadError.message || "Image upload failed." });
+    try {
+      const file = req.file;
+      if (!file) return res.status(400).json({ error: "Choose an image file." });
+      const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+      if (!allowed.includes(file.mimetype)) return res.status(400).json({ error: "Use a JPG, PNG, WEBP, or GIF image." });
+      const prompt = String(req.body?.prompt || "Describe and analyze this image carefully.").slice(0, 12000);
+      const imageUrl = "data:" + file.mimetype + ";base64," + file.buffer.toString("base64");
+      const answer = await askResearchModel([
+        { role: "system", content: "You are ARA's visual analysis specialist. Analyze only what is visible. Distinguish observation from inference, note uncertainty, and never identify a real person in an image. Answer in the user's language." },
+        { role: "user", content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: imageUrl } }
+        ] }
+      ]);
+      return res.json({ answer });
+    } catch (error) {
+      return res.status(502).json({ error: "Image analysis failed. Confirm that the selected OpenRouter model supports vision. " + error.message });
+    }
   });
 });
 
