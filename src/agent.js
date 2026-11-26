@@ -99,11 +99,12 @@ export async function runResearchAgent(conversation, mode = "research") {
   const trace = [];
   const evidence = [];
   let searches = 0;
-  const searchLimit = mode === "deep" ? 4 : 2;
+  // Keep ordinary research responsive; reserve the full review pipeline for Deep Research.
+  const searchLimit = mode === "deep" ? 3 : 1;
   let draft = "";
 
   if (mode !== "quick") {
-    for (let step = 0; step < 6; step += 1) {
+    for (let step = 0; step < 4; step += 1) {
       const raw = await askResearchModel(messages);
       const action = parseAction(raw);
       if (!action || typeof action !== "object") { draft = raw; break; }
@@ -139,7 +140,9 @@ export async function runResearchAgent(conversation, mode = "research") {
     ]);
   }
 
-  if (mode === "quick") return { answer: draft, trace, evidenceCount: evidence.length };
+  // Quick and Research return directly after drafting. Deep Research adds the
+  // slower independent specialist-review and synthesis passes.
+  if (mode !== "deep") return { answer: draft, trace, evidenceCount: evidence.length };
 
   try {
     const answer = await teamReview(latestQuestion, draft, evidence, trace);
