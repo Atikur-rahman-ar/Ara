@@ -84,7 +84,9 @@ The endpoint accepts recent user/assistant messages and returns:
 - [ ] Streaming responses
 - [ ] Model selector and provider error handling
 - [ ] Web search tool with source citations
-- [ ] PDF upload and document analysis
+- [x] Upload PDFs and extract selectable text for analysis (up to 3 files, 8 MB and 40 pages each)
+- [x] Ask questions about uploaded PDFs and compare their contents
+- [ ] OCR for scanned/image-only PDFs
 - [ ] Persistent conversation and research memory
 - [ ] Agent tool-calling loop
 - [ ] Citation/source verification workflow
@@ -93,4 +95,4 @@ The endpoint accepts recent user/assistant messages and returns:
 
 ## Important limitation
 
-ARA can export an assistant response as a formatted A4 PDF. On Windows, it attempts to use the installed Nirmala UI font for Bengali text. PDF upload/reading and automatic citation verification are not implemented yet. Scholarly search currently retrieves OpenAlex metadata only; it does not fetch or inspect full-text papers.
+ARA can export an assistant response as a formatted A4 PDF and extract selectable text from uploaded PDFs. Users can attach up to 3 PDFs (8 MB and 40 pages each) and ask for summaries, critical analysis, comparisons, and reference extraction. On Windows, PDF export attempts to use the installed Nirmala UI font for Bengali text. PDF upload/reading and automatic citation verification are not implemented yet. Scholarly search currently retrieves OpenAlex metadata only; it does not fetch or inspect full-text papers.
