@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import multer from "multer";
 import { createOfficeExport } from "./src/office-exports.js";
+import { analyzeCsv } from "./src/data-analysis.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runResearchAgent } from "./src/agent.js";
@@ -26,7 +27,22 @@ app.get("/api/health", (_req, res) => {
     status: "ok",
     name: "ARA",
     configured: Boolean(process.env.OPENROUTER_API_KEY),
-    capabilities: ["agent-loop", "openalex-literature-search", "crossref-search", "specialist-review", "pdf-report-export", "pdf-text-extraction", "docx-export", "xlsx-export", "pptx-export"]
+    capabilities: ["agent-loop", "openalex-literature-search", "crossref-search", "specialist-review", "pdf-report-export", "pdf-text-extraction", "docx-export", "xlsx-export", "pptx-export", "csv-statistical-analysis"]
+  });
+});
+
+app.post("/api/data/analyze", (req, res) => {
+  pdfUpload.single("file")(req, res, (uploadError) => {
+    if (uploadError) return res.status(400).json({ error: uploadError.message || "CSV upload failed." });
+    try {
+      const file = req.file;
+      if (!file) return res.status(400).json({ error: "Choose a CSV file." });
+      if (!file.originalname.toLowerCase().endsWith(".csv")) return res.status(400).json({ error: "Please upload a .csv file." });
+      const result = analyzeCsv(file.buffer, file.originalname);
+      return res.json({ analysis: result });
+    } catch (error) {
+      return res.status(400).json({ error: error.message || "Could not analyze the CSV." });
+    }
   });
 });
 
