@@ -138,6 +138,8 @@ export async function runResearchAgent(conversation, mode = "research") {
     ]);
   }
 
+  if (mode === "quick") return { answer: draft, trace, evidenceCount: evidence.length };
+
   try {
     const answer = await teamReview(latestQuestion, draft, evidence, trace);
     return { answer, trace, evidenceCount: evidence.length };
