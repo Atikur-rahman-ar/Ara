@@ -14,6 +14,22 @@ const csvInput = document.querySelector("#csv-input");
 const csvList = document.querySelector("#csv-list");
 let attachedDataset = null;
 let sentDataset = false;
+const STORAGE_KEY = "ara.conversation.v1";
+
+function saveConversation() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(conversation.slice(-30))); } catch {}
+}
+
+function restoreConversation() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (Array.isArray(saved)) {
+      conversation = saved.filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.content === "string").slice(-30);
+      for (const item of conversation) addMessage(item.role, item.content);
+      if (conversation.length) welcome.hidden = true;
+    }
+  } catch { conversation = []; }
+}
 
 let conversation = [];
 let busy = false;
@@ -171,6 +187,7 @@ async function sendMessage(rawMessage) {
   welcome.hidden = true;
   addMessage("user", content);
   conversation.push({ role: "user", content: requestContent });
+  saveConversation();
   input.value = "";
   input.style.height = "auto";
   setBusy(true);
@@ -197,6 +214,7 @@ async function sendMessage(rawMessage) {
       : "";
     loading.textContent = data.answer + researchNote;
     conversation.push({ role: "assistant", content: data.answer + researchNote });
+    saveConversation();
 
     const exportGroup = document.createElement("div");
     exportGroup.className = "export-group";
@@ -244,6 +262,7 @@ async function sendMessage(rawMessage) {
     loading.classList.remove("typing");
     loading.textContent = "Sorry — " + error.message;
     conversation.pop();
+    saveConversation();
   } finally {
     setBusy(false);
     input.focus();
@@ -279,6 +298,7 @@ document.querySelectorAll(".suggestion").forEach((button) => {
 newChatButton.addEventListener("click", () => {
   if (busy) return;
   conversation = [];
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
   attachedDocuments = [];
   sentDocumentCount = 0;
   attachedDataset = null;
@@ -304,4 +324,5 @@ async function checkHealth() {
 
 renderPdfList();
 renderCsvList();
+restoreConversation();
 checkHealth();
