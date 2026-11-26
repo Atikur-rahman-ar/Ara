@@ -1,14 +1,20 @@
 import "dotenv/config";
 import express from "express";
+import multer from "multer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runResearchAgent } from "./src/agent.js";
 import { createResearchPdf, validatePdfRequest } from "./src/pdf.js";
+import { extractPdfDocument } from "./src/pdf-reader.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const pdfUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024, files: 3 }
+});
 
 app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
@@ -19,7 +25,29 @@ app.get("/api/health", (_req, res) => {
     status: "ok",
     name: "ARA",
     configured: Boolean(process.env.OPENROUTER_API_KEY),
-    capabilities: ["agent-loop", "openalex-literature-search", "pdf-report-export"]
+    capabilities: ["agent-loop", "openalex-literature-search", "pdf-report-export", "pdf-text-extraction"]
+  });
+});
+
+app.post("/api/documents/extract", (req, res, next) => {
+  pdfUpload.array("files", 3)(req, res, async (uploadError) => {
+    if (uploadError) {
+      const message = uploadError.code === "LIMIT_FILE_SIZE"
+        ? "Each PDF must be 8 MB or smaller."
+        : uploadError.code === "LIMIT_FILE_COUNT"
+          ? "Upload no more than 3 PDFs at a time."
+          : uploadError.message;
+      return res.status(400).json({ error: message });
+    }
+    try {
+      const files = req.files || [];
+      if (!files.length) return res.status(400).json({ error: "Choose at least one PDF file." });
+      const documents = [];
+      for (const file of files) documents.push(await extractPdfDocument(file));
+      return res.json({ documents });
+    } catch (error) {
+      return res.status(400).json({ error: error.message || "Could not read the PDF." });
+    }
   });
 });
 
@@ -54,7 +82,7 @@ app.post("/api/chat", async (req, res) => {
   const normalizedMessages = messages
     .filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.content === "string")
     .slice(-20)
-    .map(({ role, content }) => ({ role, content: content.trim().slice(0, 12000) }))
+    .map(({ role, content }) => ({ role, content: content.trim().slice(0, 40000) }))
     .filter((item) => item.content.length > 0);
 
   if (!normalizedMessages.length || normalizedMessages.at(-1).role !== "user") {
