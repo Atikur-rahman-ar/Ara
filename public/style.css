@@ -112,3 +112,5 @@ textarea::placeholder { color: #788294; }
 #research-mode { max-width: 135px; border: 1px solid #39334f; border-radius: 7px; background: #211f32; color: #d9d5ff; padding: 6px 8px; font-size: 10px; }
 .export-group { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
 .export-pdf { margin-top: 0; }
+
+.upload-button + .upload-button { margin-left: 0; }
