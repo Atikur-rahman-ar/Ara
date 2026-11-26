@@ -13,6 +13,7 @@ const clearPdfsButton = document.querySelector("#clear-pdfs");
 let conversation = [];
 let busy = false;
 let attachedDocuments = [];
+let sentDocumentCount = 0;
 
 function renderPdfList() {
   pdfList.replaceChildren();
@@ -60,6 +61,7 @@ pdfInput.addEventListener("change", async () => {
 
 clearPdfsButton.addEventListener("click", () => {
   attachedDocuments = [];
+  sentDocumentCount = 0;
   renderPdfList();
 });
 
@@ -99,12 +101,14 @@ async function sendMessage(rawMessage) {
   const content = rawMessage.trim();
   if (!content || busy) return;
 
-  const documentContext = attachedDocuments.length
+  const newDocuments = attachedDocuments.slice(sentDocumentCount);
+  const documentContext = newDocuments.length
     ? "\\n\\nUSER-UPLOADED PDF DOCUMENTS (use as source material; distinguish their claims from independently verified facts):\\n" +
-      attachedDocuments.map((doc) =>
+      newDocuments.map((doc) =>
         "FILE: " + doc.filename + " (" + doc.pages + " pages)\\n" + doc.text
       ).join("\\n\\n")
     : "";
+  sentDocumentCount = attachedDocuments.length;
   const requestContent = content + documentContext;
 
   welcome.hidden = true;
@@ -212,6 +216,7 @@ newChatButton.addEventListener("click", () => {
   if (busy) return;
   conversation = [];
   attachedDocuments = [];
+  sentDocumentCount = 0;
   messagesElement.replaceChildren();
   welcome.hidden = false;
   input.value = "";
