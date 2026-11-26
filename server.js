@@ -19,7 +19,7 @@ app.get("/api/health", (_req, res) => {
     status: "ok",
     name: "ARA",
     configured: Boolean(process.env.OPENROUTER_API_KEY),
-    capabilities: ["agent-loop", "openalex-literature-search"]
+    capabilities: ["agent-loop", "openalex-literature-search", "pdf-report-export"]
   });
 });
 
