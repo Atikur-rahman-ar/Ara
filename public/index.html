@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#10131a" />
+  <meta name="description" content="ARA — Autonomous Research Assistant" />
+  <title>ARA — Autonomous Research Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="ARA home">
+        <span class="brand-mark">A</span>
+        <span><strong>ARA</strong><small>RESEARCH ASSISTANT</small></span>
+      </a>
+
+      <button class="new-chat" id="new-chat" type="button"><span>＋</span> New research</button>
+
+      <div class="sidebar-label">WORKSPACE</div>
+      <div class="workspace-note">
+        <span class="status-dot"></span>
+        <div><strong>Research workspace</strong><small>Local session</small></div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="model-card">
+          <span class="model-indicator"></span>
+          <div><small>MODEL ROUTER</small><strong id="model-name">OpenRouter · Free</strong></div>
+        </div>
+        <p>ARA v0.1.0 · Built for careful research</p>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark">A</span><strong>ARA</strong></div>
+        <div class="topbar-status"><span class="status-dot"></span><span id="connection-status">Checking connection…</span></div>
+        <a class="github-link" href="https://github.com/Atikur-rahman-ar/Ara" target="_blank" rel="noreferrer">GitHub ↗</a>
+      </header>
+
+      <section class="chat-area" id="chat-area">
+        <div class="welcome" id="welcome">
+          <div class="eyebrow"><span></span> AUTONOMOUS RESEARCH ASSISTANT</div>
+          <h1>Think deeper.<br /><span>Research better.</span></h1>
+          <p class="welcome-copy">A focused workspace for rigorous questions, critical analysis, and interdisciplinary research.</p>
+
+          <div class="suggestion-grid">
+            <button class="suggestion" data-prompt="Explain the difference between scientific completeness and ontological completeness."><span class="suggestion-icon">⌘</span><span><strong>Philosophy of science</strong><small>Clarify concepts and arguments</small></span><b>↗</b></button>
+            <button class="suggestion" data-prompt="Critically evaluate the evidence and limitations of the neutral theory of molecular evolution."><span class="suggestion-icon">⌬</span><span><strong>Biological research</strong><small>Evidence, methods, limitations</small></span><b>↗</b></button>
+            <button class="suggestion" data-prompt="Construct a balanced argument map for and against the Kalam cosmological argument."><span class="suggestion-icon">◈</span><span><strong>Argument analysis</strong><small>Premises and counterarguments</small></span><b>↗</b></button>
+            <button class="suggestion" data-prompt="Help me develop a literature review plan for a research question I will provide."><span class="suggestion-icon">▤</span><span><strong>Research planning</strong><small>Build a structured investigation</small></span><b>↗</b></button>
+          </div>
+        </div>
+
+        <div class="messages" id="messages" aria-live="polite"></div>
+      </section>
+
+      <section class="composer-wrap">
+        <form class="composer" id="chat-form">
+          <textarea id="message-input" rows="1" placeholder="Ask a research question…" aria-label="Your research question" required></textarea>
+          <div class="composer-footer">
+            <span class="composer-hint">ARA can make mistakes. Verify important sources and claims.</span>
+            <button class="send-button" id="send-button" type="submit" aria-label="Send message"><span>Send</span><b>↑</b></button>
+          </div>
+        </form>
+        <p class="privacy-note">Your API key stays on the server. Conversation history is currently kept only in this browser session.</p>
+      </section>
+    </main>
+  </div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
