@@ -3,6 +3,7 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runResearchAgent } from "./src/agent.js";
+import { createResearchPdf, validatePdfRequest } from "./src/pdf.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,28 @@ app.get("/api/health", (_req, res) => {
     configured: Boolean(process.env.OPENROUTER_API_KEY),
     capabilities: ["agent-loop", "openalex-literature-search"]
   });
+});
+
+app.post("/api/reports/pdf", (req, res) => {
+  try {
+    const report = validatePdfRequest(req.body);
+    const filename = report.title
+      .normalize("NFKD")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 70) || "ara-research-report";
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}.pdf"`);
+    res.setHeader("Cache-Control", "no-store");
+    createResearchPdf(report).pipe(res);
+  } catch (error) {
+    if (!res.headersSent) {
+      res.status(error.status || 500).json({ error: error.message || "Could not create the PDF." });
+    } else {
+      res.end();
+    }
+  }
 });
 
 app.post("/api/chat", async (req, res) => {
