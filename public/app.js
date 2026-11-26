@@ -75,6 +75,45 @@ async function sendMessage(rawMessage) {
       : "";
     loading.textContent = data.answer + researchNote;
     conversation.push({ role: "assistant", content: data.answer + researchNote });
+
+    const exportButton = document.createElement("button");
+    exportButton.type = "button";
+    exportButton.className = "export-pdf";
+    exportButton.textContent = "↓ Export as PDF";
+    exportButton.addEventListener("click", async () => {
+      exportButton.disabled = true;
+      exportButton.textContent = "Preparing PDF…";
+      try {
+        const pdfResponse = await fetch("/api/reports/pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: "ARA Research Report",
+            content: data.answer + researchNote
+          })
+        });
+        if (!pdfResponse.ok) {
+          const errorData = await pdfResponse.json().catch(() => ({}));
+          throw new Error(errorData.error || "PDF generation failed.");
+        }
+        const blob = await pdfResponse.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "ARA-Research-Report.pdf";
+        document.body.append(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        exportButton.textContent = "PDF downloaded";
+      } catch (error) {
+        exportButton.textContent = "PDF failed - try again";
+        exportButton.title = error.message;
+      } finally {
+        exportButton.disabled = false;
+      }
+    });
+    loading.parentElement.append(exportButton);
   } catch (error) {
     loading.classList.remove("typing");
     loading.textContent = `Sorry — ${error.message}`;
