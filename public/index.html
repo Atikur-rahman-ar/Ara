@@ -21,10 +21,11 @@
 
       <button class="new-chat" id="new-chat" type="button"><span>＋</span> New research</button>
 
-      <div class="sidebar-label">WORKSPACE</div>
+      <div class="sidebar-label">YOUR CHATS</div>
+      <nav class="chat-history" id="chat-history" aria-label="Chat history"></nav>
       <div class="workspace-note">
         <span class="status-dot"></span>
-        <div><strong>Research workspace</strong><small>Local session</small></div>
+        <div><strong>Research workspace</strong><small>Saved in this browser</small></div>
       </div>
 
       <div class="sidebar-bottom">
@@ -77,7 +78,7 @@
         <form class="composer" id="chat-form">
           <textarea id="message-input" rows="1" placeholder="Ask a research question…" aria-label="Your research question" required></textarea>
           <div class="composer-footer">
-            <div class="composer-options"><label class="mode-label" for="research-mode">Mode</label><select id="research-mode" aria-label="Research mode"><option value="quick">Quick</option><option value="research" selected>Research</option><option value="deep">Deep research</option></select></div>
+            <div class="composer-options"><label class="mode-label" for="research-mode">Mode</label><select id="research-mode" aria-label="Research mode"><option value="quick" selected>Quick</option><option value="research">Research</option><option value="deep">Deep research</option></select></div>
             <span class="composer-hint">ARA can make mistakes. Verify important sources and claims.</span>
             <button class="send-button" id="send-button" type="submit" aria-label="Send message"><span>Send</span><b>↑</b></button>
           </div>
