@@ -85,6 +85,7 @@ The endpoint accepts recent user/assistant messages and returns:
 - [ ] Model selector and provider error handling
 - [x] Scholarly metadata search through OpenAlex and Crossref
 - [x] CSV descriptive statistics, missing-value counts, categorical frequencies, and Pearson correlations
+- [x] Image understanding through a vision-capable OpenRouter model
 - [x] Specialist review workflow (logic/methodology and evidence/citation review)
 - [x] Upload PDFs and extract selectable text for analysis (up to 3 files, 8 MB and 40 pages each)
 - [x] Ask questions about uploaded PDFs and compare their contents
