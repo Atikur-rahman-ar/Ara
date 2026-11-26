@@ -12,6 +12,9 @@ const clearPdfsButton = document.querySelector("#clear-pdfs");
 const researchMode = document.querySelector("#research-mode");
 const csvInput = document.querySelector("#csv-input");
 const csvList = document.querySelector("#csv-list");
+const imageInput = document.querySelector("#image-input");
+const imageList = document.querySelector("#image-list");
+let attachedImageFile = null;
 let attachedDataset = null;
 let sentDataset = false;
 const STORAGE_KEY = "ara.conversation.v1";
@@ -86,6 +89,30 @@ clearPdfsButton.addEventListener("click", () => {
   renderPdfList();
 });
 
+
+function renderImageList() {
+  imageList.replaceChildren();
+  if (!attachedImageFile) return;
+  const chip = document.createElement("span");
+  chip.className = "pdf-chip";
+  chip.textContent = attachedImageFile.name;
+  imageList.append(chip);
+  const clear = document.createElement("button");
+  clear.type = "button";
+  clear.className = "clear-pdfs";
+  clear.textContent = "Remove image";
+  clear.addEventListener("click", () => { attachedImageFile = null; renderImageList(); });
+  imageList.append(clear);
+}
+
+imageInput.addEventListener("change", () => {
+  const file = imageInput.files?.[0];
+  if (!file) return;
+  if (file.size > 4 * 1024 * 1024) { imageList.textContent = "Image must be 4 MB or smaller."; imageInput.value = ""; return; }
+  attachedImageFile = file;
+  renderImageList();
+  imageInput.value = "";
+});
 
 function renderCsvList() {
   csvList.replaceChildren();
@@ -225,6 +252,7 @@ async function sendMessage(rawMessage) {
     ? "\n\nUSER-UPLOADED DATASET ANALYSIS (descriptive statistics, not causal inference):\n" + JSON.stringify(attachedDataset)
     : "";
   sentDataset = Boolean(attachedDataset);
+  const imageToAnalyze = attachedImageFile;
   const requestContent = content + documentContext + datasetContext;
 
   welcome.hidden = true;
@@ -239,11 +267,19 @@ async function sendMessage(rawMessage) {
   loading.classList.add("typing");
 
   try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: conversation, mode: researchMode.value })
-    });
+    let response;
+    if (imageToAnalyze) {
+      const payload = new FormData();
+      payload.append("image", imageToAnalyze);
+      payload.append("prompt", requestContent);
+      response = await fetch("/api/vision/analyze", { method: "POST", body: payload });
+    } else {
+      response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: conversation, mode: researchMode.value })
+      });
+    }
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Something went wrong.");
 
@@ -257,6 +293,7 @@ async function sendMessage(rawMessage) {
       : "";
     loading.textContent = data.answer + researchNote;
     conversation.push({ role: "assistant", content: data.answer + researchNote });
+    if (imageToAnalyze) { attachedImageFile = null; renderImageList(); }
     saveConversation();
 
     const exportGroup = document.createElement("div");
@@ -347,11 +384,13 @@ newChatButton.addEventListener("click", () => {
   sentDocumentCount = 0;
   attachedDataset = null;
   sentDataset = false;
+  attachedImageFile = null;
   messagesElement.replaceChildren();
   welcome.hidden = false;
   input.value = "";
   renderPdfList();
   renderCsvList();
+  renderImageList();
   input.focus();
 });
 
@@ -369,5 +408,6 @@ async function checkHealth() {
 
 renderPdfList();
 renderCsvList();
+renderImageList();
 restoreConversation();
 checkHealth();
